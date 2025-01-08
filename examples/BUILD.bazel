@@ -12,6 +12,8 @@ load("@com_google_protobuf//bazel:py_proto_library.bzl", "py_proto_library")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load("@rules_python//python:py_binary.bzl", "py_binary")
+load("@rules_python//python:py_library.bzl", "py_library")
+load("@rules_python//python:py_test.bzl", "py_test")
 
 # cc_proto_library is intentionally not loaded, to test Bazel's built-in implementation
 # against Protobuf's implementation (already used building protoc)
@@ -153,6 +155,63 @@ build_test(
         ":add_person_java",
         ":add_person",  # Python
     ],
+)
+
+proto_library(
+    name = "movie_proto",
+    srcs = ["movie_reviews/nested_dir/movie.proto"],
+    strip_import_prefix = "movie_reviews",
+    deps = ["@com_google_protobuf//:timestamp_proto"],
+)
+
+py_proto_library(
+    name = "movie_py_pb2",
+    deps = [":movie_proto"],
+    visibility = ["//print_reviews:__subpackages__"],
+)
+
+proto_library(
+    name = "critic_proto",
+    srcs = ["movie_reviews/nested_dir/critic.proto"],
+    strip_import_prefix = "movie_reviews",
+)
+
+py_proto_library(
+    name = "critic_py_pb2",
+    deps = [":critic_proto"],
+    visibility = ["//print_reviews:__subpackages__"],
+)
+
+proto_library(
+    name = "movie_reviews_proto",
+    srcs = ["movie_reviews/nested_dir/movie_reviews.proto"],
+    strip_import_prefix = "movie_reviews",
+    deps = [
+        ":critic_proto",
+        ":movie_proto",
+    ],
+)
+
+py_proto_library(
+    name = "movie_reviews_py_pb2",
+    deps = [":movie_reviews_proto"],
+    visibility = ["//print_reviews:__subpackages__"],
+)
+
+py_library(
+    name = "print_movie_reviews",
+    srcs = ["print_movie_reviews.py"],
+    deps = [
+        "//:movie_py_pb2",
+        "//:critic_py_pb2",
+        "//:movie_reviews_py_pb2",
+    ],
+)
+
+py_test(
+    name = "print_movie_reviews_test",
+    srcs = ["print_movie_reviews_test.py"],
+    deps = [":print_movie_reviews"],
 )
 
 # Files included in all source distributions

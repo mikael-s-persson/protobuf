@@ -1,0 +1,17 @@
+syntax = "proto3";
+package movie_reviews;
+
+import "nested_dir/movie.proto";
+import "nested_dir/critic.proto";
+
+// Next ID: 4
+message MovieReview {
+  Movie movie = 1;
+  Critic critic = 2;
+  uint32 score_out_of_ten = 3;
+}
+
+// Next ID: 2
+message MovieReviews {
+  repeated MovieReview reviews = 1;
+}
